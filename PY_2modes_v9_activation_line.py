@@ -263,7 +263,7 @@ class SerialManager:
 class AssessmentApp:
     def __init__(self, root):
         self.root = root
-        root.title("ESP32 Assessment GUI (save-only)")
+        root.title("ESP32 Assessment GUI")
         root.configure(bg="white")
 
         self.serial = SerialManager()
@@ -845,7 +845,9 @@ class ResultsWindow:
         for part in meta1.split(","):
             if ":" in part:
                 k, v = part.split(":", 1)
-                meta_dict[k.strip()] = v.strip()
+                clean_k = k.strip().lstrip('"').rstrip('"')
+                clean_v = v.strip().lstrip('"').rstrip('"')
+                meta_dict[clean_k] = clean_v
 
         # Parse random delay
         try:
@@ -870,7 +872,6 @@ class ResultsWindow:
         self.meta_labels["Random Delay (ms)"].config(text=f"Random Delay (ms): {rand_delay}")
         self.meta_labels["Digit Combination"].config(text=f"Digit Combination: {combo}")
         self.meta_labels["Activated Digit"].config(text=f"Activated Digit: {activated_digit}")
-        
 
         # IMPORT THE DATAFRAME
         try:
@@ -884,7 +885,7 @@ class ResultsWindow:
         forces = df[[f"f{i}" for i in range(10)]].to_numpy()
 
         # low pass filter to reduce high frequency vibration for response time detection
-        filtered_forces = gaussian_filter(forces, sigma=2, mode='constant', cval=0)
+        filtered_forces = gaussian_filter(forces, sigma=1, mode='constant', cval=0)
 
         # process data for response times:
         # Compute baseline (first 1000 ms) - 1 sec of data, pre-vibration
@@ -893,18 +894,24 @@ class ResultsWindow:
         baseline_std = forces[baseline_mask].std(axis=0)
 
         # Threshold = mean + 3*std - we can adjust this multiplier based on our force data
-        thresh = baseline_mean + 3 * baseline_std
-
+        tuning_offset = 0  # empirically determined offset to help ensure threshold is above baseline noise but still sensitive to real responses; may need adjustment based on actual data
+        thresh = baseline_mean + 3 * baseline_std + tuning_offset
         # Compute response time for each digit
         response_times = []
         for i in range(10):
-            exceed = np.where(filtered_forces[:, i] > thresh[i])[0] # look only after first second because responses should only occur after vibration starts; this also avoids false positives from baseline noise
+            exceed = np.where(filtered_forces[:, i] > thresh[i])[0] 
+            # look only after first second because responses should only occur after vibration starts; this also avoids false positives from baseline noise
+            exceed = exceed[exceed > 999]  # only consider samples after first second (1000 ms)
+            exceed = exceed[filtered_forces[exceed, i] > 50]  # only consider samples with filtered force > 50
             rt = t[exceed[0]] if len(exceed) > 0 and max(forces[exceed, i]) > 500 else None
             response_times.append(rt)
 
         response_time_active = response_times[activated_digit]- t[999] if activated_digit is not None and response_times[activated_digit] is not None else None
-        self.meta_labels["Response Time (ms)"].config(text=f"Response Time (ms): {response_time_active if response_time_active is not None else 'N/A'}")
-
+        self.meta_labels["Response Time (ms)"].config(text=f" ")
+        if response_time_active is None:
+            self.meta_labels[" "].config(text=f"Non-response")
+        else:
+            self.meta_labels[" "].config(text=f"Response Time = {response_time_active} ms")
         # PLOT ALL 10 DIGIT CURVES
         self.fig.clear()
 
@@ -920,11 +927,15 @@ class ResultsWindow:
             ax = self.fig.add_subplot(5, 2, subplot_index)
 
             ax.plot(t, forces[:, i], linewidth=1)
-            ax.axhline(baseline_mean[i], linestyle="--", linewidth=1, color="gray")
+            # optional if want to see the threshold but keep in mind that the max also has to exceed 500 so could be misleading 
+            if thresh[i]<500:
+                ax.axhline(500, linestyle="--", linewidth=1, color="gray")
+                ax.axhline(thresh[i], linestyle="--", linewidth=1, color="gray")
+            else:
+                ax.axhline(thresh[i], linestyle="--", linewidth=1, color="gray")
 
             if response_times[i] is not None:
                 ax.axvline(response_times[i], linestyle="--", color="blue", linewidth=1)
-                
 
             if activated_digit is not None and i == activated_digit:
                 ax.axvline(t[999], linestyle="--", color="green", linewidth=1)
