@@ -1,4 +1,4 @@
-// this version is compatible with PY_2modes_v5_Hands and PY_2modes_v6_results, 
+// this version is most compatible with PY_2modes_v9_activation_line.py (but can work with v5-v9), 
 // and does not have the piezoelectric buzzer activation added yet
 
 #include <Arduino.h>
