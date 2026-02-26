@@ -32,9 +32,9 @@ const int S3_PIN = 26;
 // Timing settings, each phase should be 60s (60000ms) 
 // but I have them set to 10s atm for faster example trials and debugging
 // I wouldnt recommend going much faster bc the data collection may start to overlap with the next trial 
-const int precond_phase = 10000;   // pre condition phase
-const int active_phase = 10000;   // stimulation phase
-const int rest_phase = 10000;      // rest phase     
+const int precond_phase = 60000;   // pre condition phase (3000)
+const int active_phase = 60000;   // stimulation phase (2000)
+const int rest_phase = 60000;      // rest phase    (5000) 
 
 // set data sampling rate in microseconds (1000us = 1000 Hz)
 const int SAMPLE_RATE_US = 1000;  
@@ -285,23 +285,23 @@ void loop() {
 
                         // event scheduling
                         // if there are issues here, change everything to be in ms (no more us)
-                        Serial.print("#t0_ms");
-                        Serial.println(t0_ms);
-                        Serial.print("#t0_us");
-                        Serial.println(t0_us);
+                        //Serial.print("#t0_ms");
+                        //Serial.println(t0_ms);
+                        // Serial.print("#t0_us");
+                        //Serial.println(t0_us);
                         activation_time = t0_us + precond_phase*1000 + random_delay*1000; // time of vibration
                         activation_end = activation_time+500000;
-                        Serial.print("#activation time");
-                        Serial.println(activation_time);
+                        //Serial.print("#activation time");
+                        //Serial.println(activation_time);
                         next_sample = activation_time - 1000000; // time of next sample in us (first sample here)
-                        Serial.print("#next sample = ");
-                        Serial.println(next_sample);
+                        //Serial.print("#next sample = ");
+                        //Serial.println(next_sample);
                         rest_start = t0_ms + precond_phase + active_phase; // rest phase start
-                        Serial.print("#rest_start = ");
-                        Serial.println(rest_start);
+                        //Serial.print("#rest_start = ");
+                        //Serial.println(rest_start);
                         trial_end = rest_start + rest_phase; // end of trial
-                        Serial.print("#trial_end = ");
-                        Serial.println(trial_end);
+                        //Serial.print("#trial_end = ");
+                        //Serial.println(trial_end);
                         rest_start_unsent = true; // establish rest message flag 
                         LRA_ON = false;
                         data_flag = true;
@@ -310,15 +310,15 @@ void loop() {
                     }
             }
             if (!fresh_start){ // gray area (after data collection but not at the start of a new trial)
-                if (millis()> trial_end - 250) {// check if enough time has passed for all 3 phases "trial_end" (maybe minus a little time in case combo receiving causes delays)
+                if (millis()> trial_end - 50) {// check if enough time has passed for all 3 phases "trial_end" (maybe minus a little time in case combo receiving causes delays)
                     // if yes, begin new trial
                         fresh_start = true; 
                         TIMEOUT = millis() + 60000; // reset the timeout
                         Serial.println("#TRIAL_DONE");
                         delay(5);
                         Serial.println("#WAIT_COMBO");
-                }
-                if (millis()< trial_end - 250) { // if no, check if rest phase has started, 
+                        return;}
+                if (millis()< trial_end - 50) { // if no, check if rest phase has started, 
                     if (millis()> rest_start && rest_start_unsent) { // if it has, send rest msg - and only send once! (set rest_start_unsent to false)
                         // send rest message
                         rest_start_unsent = false;
@@ -371,6 +371,7 @@ void loop() {
         if (precond_flag) {// precond_flag = true
             start_time = millis(); // collect start time for proper scheduling
             // add buzzer activation here, placeholder is to print:
+            Serial.flush();
             Serial.println("Start Trial");
             // (no combination selection because there is no way to communicate the combination to the user in training mode 
             //  and the combinations result in some fingers being selected more frequently than others --> uneven training)
@@ -397,6 +398,7 @@ void loop() {
                 tcaSelect(active_digit);
                 vibrateContinuous(0.5, 90); // .5 seconds, intensity 90
                 //vibrateLRA(active_digit);
+                Serial.flush();
                 Serial.println("vibration sent");
                 // set flag
                 stim_flag = false;
