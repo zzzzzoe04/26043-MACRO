@@ -578,7 +578,7 @@ class AssessmentApp:
     def _session_loop(self):
         # main loop: wait for WAIT_COMBO, send combo, collect sample lines until TRIAL_DONE, save CSV
         while self.session_active and not self.stop_requested:
-            self.log("Waiting for WAIT_COMBO from ESP...")
+            # self.log("Waiting for WAIT_COMBO from ESP...")
             self.serial.send_line("WAIT_COMBO")
             got_wait = False
             wait_start = time.time()
@@ -593,7 +593,7 @@ class AssessmentApp:
                         break
                 time.sleep(0.01)
             if not got_wait:
-                self.log("Timeout waiting for WAIT_COMBO; retrying...")
+                # self.log("Timeout waiting for WAIT_COMBO; retrying...")
                 self.serial.send_line("WAIT_COMBO")
                 continue
 
@@ -909,9 +909,9 @@ class ResultsWindow:
         response_time_active = response_times[activated_digit]- t[999] if activated_digit is not None and response_times[activated_digit] is not None else None
         self.meta_labels["Response Time (ms)"].config(text=f" ")
         if response_time_active is None:
-            self.meta_labels[" "].config(text=f"Non-response")
+            self.meta_labels["Response Time (ms)"].config(text=f"Non-response")
         else:
-            self.meta_labels[" "].config(text=f"Response Time = {response_time_active} ms")
+            self.meta_labels["Response Time (ms)"].config(text=f"Response Time = {response_time_active} ms")
         # PLOT ALL 10 DIGIT CURVES
         self.fig.clear()
 
