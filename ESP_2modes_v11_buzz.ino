@@ -376,6 +376,8 @@ void loop() {
                         Serial.flush();
                         Serial.println("#REST_START");
                         buzz();
+                        delay(500);  
+                        buzz();
                     }
                 }
                 return; // break out and re enter
@@ -485,6 +487,8 @@ void loop() {
             if (millis() < start_time + precond_phase + active_phase) { // if too early for rest phase, check for messages
                 msg_flag = true;
             } else { // reset to first step of the trial
+                buzz();
+                delay(500);
                 buzz();
                 trial_done_flag = true;
                 rest_flag = false;
