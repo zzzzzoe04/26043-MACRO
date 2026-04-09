@@ -367,7 +367,7 @@ class AssessmentApp:
 
         log_card = ttk.LabelFrame(bottom, text="Messages")
         log_card.grid(row=0, column=1, sticky="nsew", padx=6, pady=6)
-        self.log_text = tk.Text(log_card, height=12, wrap="word", bg="#FFFFFF", fg="#111113", relief="solid", bd=1)
+        self.log_text = tk.Text(log_card, height=8, wrap="word", bg="#FFFFFF", fg="#111113", relief="solid", bd=1)
         self.log_text.pack(fill="both", padx=6, pady=6)
         self.log_text.configure(state="disabled")
 
@@ -527,7 +527,8 @@ class AssessmentApp:
                 ln = self.serial.get_msg_nowait(timeout=0.05)
                 if ln:
                     # show high-level messages but not samples
-                    self.log("ESP ->", ln)
+                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
+                        self.log("ESP ->", ln)
                     if ln.strip() == "OK":
                         got_ok = True
                         break
@@ -590,7 +591,8 @@ class AssessmentApp:
             while time.time() - wait_start < 10:  # 10s timeout waiting for WAIT_COMBO
                 ln = self.serial.get_msg_nowait(timeout=0.2)
                 if ln:
-                    self.log("ESP ->", ln)
+                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
+                        self.log("ESP ->", ln)
                     if ln.strip() == "OK":
                         self.serial.send_line("WAIT_COMBO")
                     if ln.strip() == "WAIT_COMBO":
@@ -647,7 +649,8 @@ class AssessmentApp:
                 ln = self.serial.get_msg_nowait(timeout=0.01)
                 if ln:
                     # log status messages
-                    self.log("ESP ->", ln)
+                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
+                        self.log("ESP ->", ln)
                     if ln.startswith("ACTIVE_DIGIT="):
                         try:
                             active_digit = int(ln.split("=", 1)[1])
@@ -661,13 +664,13 @@ class AssessmentApp:
                     elif ln.strip() == "REST_START":
                         if len(sample_rows) == 6000:  # 60s at 100Hz
                             collecting = False
-                            self.log("ESP reported REST_START and 6000 samples reached")
+                            self.log("ESP reported REST_START")
                             break
                         else:
-                            self.log("ESP reported REST_START, ", len(sample_rows), " samples collected...")
+                            self.log("ESP reported REST_START")
                     elif ln.strip() == "TRIAL_DONE":
                         collecting = False
-                        self.log("ESP reported TRIAL_DONE")
+                        self.log("ESP reported cycle done")
                         break
                     # ignore other messages
                 # then drain sample queue without logging them
@@ -695,11 +698,11 @@ class AssessmentApp:
             self.cycle_counter += 1
             ts_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             safe_user = (self.user_id.get().strip() or "user").replace(" ", "_")
-            safe_sesh = (self.session_id.get().strip() or "session").replace(" ", "_")
+            safe_sess = (self.session_id.get().strip() or "session").replace(" ", "_")
             safe_cycl = f"{self.cycle_counter:03d}"
             safe_comb = f"{(combo_idx+1):03d}"
             safe_temp = (self.temp_var.get().strip() or "000").replace(" ", "_")
-            fname = f"SUBJ{safe_user}_SESH{safe_sesh}__CYCL{safe_cycl}_COMB{safe_comb}_TEMP{safe_temp}_{ts_str}.csv"
+            fname = f"SUBJ{safe_user}_SESS{safe_sess}__CYCL{safe_cycl}_COMB{safe_comb}_TEMP{safe_temp}_{ts_str}.csv"
             outpath = os.path.join(OUT_DIR, fname)
             try:
                 with open(outpath, "w", newline="") as f:
@@ -720,9 +723,9 @@ class AssessmentApp:
                     # Rows: samples
                     for (tms, forces) in sample_rows:
                         writer.writerow([tms] + forces)
-                self.log(f"Saved cycle {self.cycle_counter} to {outpath} ({len(sample_rows)} samples)")
+                self.log(f"Saved cycle {self.cycle_counter} to {outpath}")
                 # update GUI with combo and activated
-                self.root.after(0, self._update_after_cycle, combo, active_digit, rand_delay, outpath, len(sample_rows))
+                self.root.after(0, self._update_after_cycle, combo, active_digit, rand_delay, outpath)
             except Exception as e:
                 self.log("Failed to save CSV:", e)
 
@@ -743,7 +746,7 @@ class AssessmentApp:
         self.status_var.set("Session stopped")
         self.log("Session ended")
 
-    def _update_after_cycle(self, combo, active_digit, rand_delay, outpath, n_samples):
+    def _update_after_cycle(self, combo, active_digit, rand_delay, outpath):
         # update digit colors
         possible_list = [i for i in range(10) if combo[i] == 1]
         self.update_possible_digits(possible_list)
@@ -752,7 +755,6 @@ class AssessmentApp:
             f"{os.path.basename(outpath)}\n"
             f"Activated digit: {active_digit}\n"
             f"Random delay (ms): {rand_delay}\n"
-            f"Samples: {n_samples}\n"
         )
         self.last_cycle_info.set(info)
         self.status_var.set(f"Saved cycle {self.cycle_counter}")
@@ -762,8 +764,9 @@ class AssessmentApp:
         for _ in range(8):
             ln = self.serial.get_msg_nowait(timeout=0.001)
             if ln:
+                if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
                 # show only non-sample status lines
-                self.log("ESP->", ln)
+                    self.log("ESP->", ln)
             else:
                 break
         # refresh ports occasionally
