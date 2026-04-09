@@ -612,11 +612,14 @@ class AssessmentApp:
                     # only left hand digits allowed (indices 0..4); ensure no right digits active
                     if any(v[5:]): continue # skip over combinations that use right hand digits (indices 5-9)
                     subset.append(v) # otherwise append to the subset
+                    combo_idx = int(selected_comb.split(".")[0].strip()) - 1
                 elif selected_comb == "47. Right Hand Only (Random)":
                     if any(v[0:5]): continue # skip over any combos with active digits in spot 0,1,2,3, or 4
                     subset.append(v)
+                    combo_idx = int(selected_comb.split(".")[0].strip()) - 1
                 elif selected_comb == "48. Both Hands (Random)":
                     subset.append(v)
+                    combo_idx = int(selected_comb.split(".")[0].strip()) - 1
             if not subset:
                 # then the combination is the selected combination from the dropdown, so find it in the COMBOS list and use that as the only option in the subset
                 # parse the number before the dot to get the index
