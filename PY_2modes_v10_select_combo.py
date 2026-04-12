@@ -1,6 +1,5 @@
 """
 ESP32 Assessment GUI (Tkinter) 
-this version builds on the save only version(V3), adding a finger activation map with wireframe hands(V5) and a display of previous cycle data(V6)
 
 CSV format per cycle:
 Row1: "UserID: X, SessionID: Y, Date: Z, Hand: H"
@@ -263,7 +262,7 @@ class SerialManager:
 class AssessmentApp:
     def __init__(self, root):
         self.root = root
-        root.title("ESP32 Assessment GUI")
+        root.title("MACRO Assessment GUI")
         root.configure(bg="white")
 
         self.serial = SerialManager()
@@ -798,7 +797,7 @@ class ResultsWindow:
 
         title_lbl = tk.Label(
             self.meta_frame,
-            text="Cycle Data",
+            text="Cycle Data: Relative Force (Unitless) vs Time (ms)",
             font=("Arial", 14),
             bg="white"
         )
@@ -918,7 +917,7 @@ class ResultsWindow:
             # look only after first second because responses should only occur after vibration starts; this also avoids false positives from baseline noise
             exceed = exceed[exceed > 999]  # only consider samples after first second (1000 ms)
             exceed = exceed[filtered_forces[exceed, i] > 50]  # only consider samples with filtered force > 50
-            rt = t[exceed[0]] if len(exceed) > 0 and max(forces[exceed, i]) > 500 else None
+            rt = t[exceed[0]] if len(exceed) > 0 and max(forces[exceed, i]) > 450 else None
             response_times.append(rt)
 
         response_time_active = response_times[activated_digit]- t[999] if activated_digit is not None and response_times[activated_digit] is not None else None
@@ -957,7 +956,7 @@ class ResultsWindow:
 
             ax.set_title(f"Digit {i}")
             ax.set_xlabel("Time (ms)")
-            ax.set_ylabel("Force")
+            ax.set_ylabel("Force (-)")
 
         self.fig.tight_layout()
         self.canvas.draw()
