@@ -72,10 +72,17 @@ uint32_t trial_end = 250; // end of trial
 // activate buzzer
 void buzz() {
   digitalWrite(BUZZ_PIN, HIGH);        // Pull pin HIGH
-  delay(500);                  // Duration in milliseconds ( .5 seconds)
+  delay(100);                  // Duration in milliseconds ( .5 seconds)
   digitalWrite(BUZZ_PIN, LOW);         // Pull pin LOW
+  delay(100);
+  digitalWrite(BUZZ_PIN, HIGH);        // Pull pin HIGH
+  delay(100);                  // Duration in milliseconds ( .5 seconds)
+  digitalWrite(BUZZ_PIN, LOW);
+  delay(100);
+  digitalWrite(BUZZ_PIN, HIGH);        // Pull pin HIGH
+  delay(100);                  // Duration in milliseconds ( .5 seconds)
+  digitalWrite(BUZZ_PIN, LOW);
 }
-
 
 // Select a MUX channel (0–15)
 void selectMuxChannel(uint8_t channel) {
@@ -375,9 +382,6 @@ void loop() {
                         rest_start_unsent = false;
                         Serial.flush();
                         Serial.println("#REST_START");
-                        buzz();
-                        delay(500);  
-                        buzz();
                     }
                 }
                 return; // break out and re enter
@@ -487,9 +491,6 @@ void loop() {
             if (millis() < start_time + precond_phase + active_phase) { // if too early for rest phase, check for messages
                 msg_flag = true;
             } else { // reset to first step of the trial
-                buzz();
-                delay(500);
-                buzz();
                 trial_done_flag = true;
                 rest_flag = false;
                 return;
