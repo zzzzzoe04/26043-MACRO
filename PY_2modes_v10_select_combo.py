@@ -797,7 +797,7 @@ class ResultsWindow:
 
         title_lbl = tk.Label(
             self.meta_frame,
-            text="Cycle Data: Relative Force (Unitless) vs Time (ms)",
+            text="Cycle Data: Response Signal (Unitless) vs Time (ms)",
             font=("Arial", 14),
             bg="white"
         )
@@ -956,7 +956,7 @@ class ResultsWindow:
 
             ax.set_title(f"Digit {i}")
             ax.set_xlabel("Time (ms)")
-            ax.set_ylabel("Force (-)")
+            ax.set_ylabel("Response (-)")
 
         self.fig.tight_layout()
         self.canvas.draw()
