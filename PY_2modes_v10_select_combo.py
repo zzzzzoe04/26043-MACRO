@@ -451,8 +451,8 @@ class AssessmentApp:
             idx = d # if d < 5 else d - 5
             node_id = self.finger_nodes[f"{side}{idx}"]
             self.canvas.itemconfig(node_id,
-                fill="#EFF6FF",
-                outline="#3B82F6"
+                fill="#649EFA",
+                outline="#A1A1AA"
             )
 
     # this doesnt get called anywhere bc we dont want the user to know which digit will vibrate but its here in case we want to see the active digit during testing
