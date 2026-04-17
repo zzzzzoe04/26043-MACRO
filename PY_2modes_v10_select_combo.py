@@ -916,7 +916,7 @@ class ResultsWindow:
             exceed = np.where(filtered_forces[:, i] > thresh[i])[0] 
             # look only after first second because responses should only occur after vibration starts; this also avoids false positives from baseline noise
             exceed = exceed[exceed > 999]  # only consider samples after first second (1000 ms)
-            exceed = exceed[filtered_forces[exceed, i] > 50]  # only consider samples with filtered force > 50
+            exceed = exceed[forces[exceed, i] > (50)]  # only consider samples with force > 50
             rt = t[exceed[0]] if len(exceed) > 0 and max(forces[exceed, i]) > 450 else None
             response_times.append(rt)
 
