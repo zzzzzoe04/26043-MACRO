@@ -526,7 +526,7 @@ class AssessmentApp:
                 ln = self.serial.get_msg_nowait(timeout=0.05)
                 if ln:
                     # show high-level messages but not samples
-                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
+                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT=") and not ln.startswith("random_delay_MS="):
                         self.log("ESP ->", ln)
                     if ln.strip() == "OK":
                         got_ok = True
@@ -590,7 +590,7 @@ class AssessmentApp:
             while time.time() - wait_start < 10:  # 10s timeout waiting for WAIT_COMBO
                 ln = self.serial.get_msg_nowait(timeout=0.2)
                 if ln:
-                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
+                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT=") and not ln.startswith("random_delay_MS="):
                         self.log("ESP ->", ln)
                     if ln.strip() == "OK":
                         self.serial.send_line("WAIT_COMBO")
@@ -651,7 +651,7 @@ class AssessmentApp:
                 ln = self.serial.get_msg_nowait(timeout=0.01)
                 if ln:
                     # log status messages
-                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
+                    if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT=") and not ln.startswith("random_delay_MS="):
                         self.log("ESP ->", ln)
                     if ln.startswith("ACTIVE_DIGIT="):
                         try:
@@ -766,7 +766,7 @@ class AssessmentApp:
         for _ in range(8):
             ln = self.serial.get_msg_nowait(timeout=0.001)
             if ln:
-                if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT="):
+                if ln.strip() != "WAIT_COMBO" and not ln.startswith("ACTIVE_DIGIT=") and not ln.startswith("random_delay_MS="):
                 # show only non-sample status lines
                     self.log("ESP->", ln)
             else:
@@ -806,7 +806,7 @@ class ResultsWindow:
         # Keys in desired order
         meta_keys = [
             "UserID", "SessionID", "Date",
-            "Hand", "Random Delay (ms)",
+            "  ", "Random Delay (ms)",
             "Digit Combination", "Activated Digit", "Response Time (ms)"
         ]
 
@@ -883,6 +883,7 @@ class ResultsWindow:
         self.meta_labels["UserID"].config(text=f"UserID: {meta_dict.get('UserID', '')}")
         self.meta_labels["SessionID"].config(text=f"SessionID: {meta_dict.get('SessionID', '')}")
         self.meta_labels["Date"].config(text=f"Date: {meta_dict.get('Date', '')}")
+        self.meta_labels["  "].config(text=f"  ")
         self.meta_labels["Random Delay (ms)"].config(text=f"Random Delay (ms): {rand_delay}")
         self.meta_labels["Digit Combination"].config(text=f"Digit Combination: {combo}")
         self.meta_labels["Activated Digit"].config(text=f"Activated Digit: {activated_digit}")
