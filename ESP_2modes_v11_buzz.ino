@@ -292,7 +292,7 @@ void loop() {
                             msg_flag = false; return;}
                         if (combo == "WAIT_COMBO" || combo == "WAIT_COMBO" || combo == "WAIT_COMBO") { Serial.println("#WAIT_COMBO"); return;}
                         if (combo == "ASSESS") { Serial.println("#OK"); return;}
-                        if (combo == "" || combo == "COMBO") {
+                        if (combo == "" || combo == "COMBO" || combo = "START_SESSION") {
                             combo = Serial.readStringUntil('\n'); // read the next incoming line
                             combo.trim();
                             }
